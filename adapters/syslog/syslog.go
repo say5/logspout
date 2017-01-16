@@ -145,23 +145,18 @@ func (a *SyslogAdapter) retryTemporary(buf []byte) error {
 }
 
 func (a *SyslogAdapter) reconnect() error {
-	log.Println("syslog: reconnecting up to 11 times")
-	err := retryExp(func() error {
+	log.Println("syslog: reconnecting every 2s")
+	for {
 		conn, err := a.transport.Dial(a.route.Address, a.route.Options)
-		if err != nil {
-			return err
+		if err == nil {
+			log.Println("syslog: connection restored")
+			a.conn.Close()
+			a.conn = conn
+			return nil
 		}
 
-		a.conn = conn
-		return nil
-	}, 11)
-
-	if err != nil {
-		log.Println("syslog: reconnect failed")
-		return err
+		time.Sleep(2 * time.Second)
 	}
-
-	return nil
 }
 
 func retryExp(fun func() error, tries uint) error {

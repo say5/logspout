@@ -348,7 +348,10 @@ func (cp *containerPump) send(msg *Message) {
 			// normal call to remove() triggered by
 			// route.Closer() may not be able to grab
 			// lock under heavy load, so we delete here
-			defer delete(cp.logstreams, logstream)
+
+			// XXX: when connection to syslog is failed, this defer causes channel to close.
+			// As long as we try to reconnect permanently, we need the channel to be always open.
+			//defer delete(cp.logstreams, logstream)
 		}
 	}
 }
